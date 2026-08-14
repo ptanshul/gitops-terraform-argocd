@@ -14,4 +14,10 @@ provider "azurerm" {
 resource "azurerm_resource_group" "rg" {
   name     = "rg-gitops-terraform-argocd"
   location = "Central India"
+
+  tags = {
+    Environment = "GitOps"
+    ManagedBy   = "Terraform"
+    Project     = "ArgoCD-Terraform"
+  }
 }
