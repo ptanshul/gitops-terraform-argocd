@@ -58,6 +58,11 @@ spec:
               cd /workspace
               echo "=== Checkout Git revision ==="
               git checkout "${GIT_REVISION}"
+              echo "=== Git Revision ==="
+              git rev-parse HEAD
+              echo "=== Terraform main.tf ==="
+              grep 'name.*rg-gitops' /workspace/terraform/main.tf
+
               cd /workspace/terraform
 
               echo "=== Terraform Init ==="
