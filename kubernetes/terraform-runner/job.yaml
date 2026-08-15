@@ -1,0 +1,83 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: terraform-runner
+  namespace: terraform
+spec:
+  backoffLimit: 0
+
+  template:
+    metadata:
+      labels:
+        azure.workload.identity/use: "true"
+
+    spec:
+      serviceAccountName: terraform-runner
+      restartPolicy: Never
+
+      containers:
+        - name: terraform
+          image: alpine:3.20
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              echo "=== Install dependencies ==="
+              apk add --no-cache git curl unzip
+
+              echo "=== Install Terraform ==="
+              TERRAFORM_VERSION=1.15.8
+
+              curl -fsSL \
+                -o /tmp/terraform.zip \
+                https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+              unzip -o /tmp/terraform.zip -d /usr/local/bin
+              terraform version
+
+              echo "=== Azure Workload Identity ==="
+              echo "CLIENT_ID=${ARM_CLIENT_ID}"
+              echo "TENANT_ID=${ARM_TENANT_ID}"
+              echo "SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}"
+
+              echo "=== OIDC Token ==="
+              test -f "${ARM_OIDC_TOKEN_FILE_PATH}"
+              echo "OIDC token exists"
+
+              echo "=== Clone Git repository ==="
+              git clone \
+                --branch master \
+                https://github.com/ptanshul/gitops-terraform-argocd.git \
+                /workspace
+
+              cd /workspace/terraform
+
+              echo "=== Terraform Init ==="
+              terraform init
+
+              echo "=== Terraform Validate ==="
+              terraform validate
+
+              echo "=== Terraform Plan ==="
+              terraform plan
+
+              echo "=== TEST PASSED ==="
+
+          env:
+            - name: ARM_USE_OIDC
+              value: "true"
+
+            - name: ARM_CLIENT_ID
+              value: "c68d765d-5593-4d91-9802-11d7cdb8096c"
+
+            - name: ARM_TENANT_ID
+              value: "1874cf7d-a868-4710-b77d-4494ee98045a"
+
+            - name: ARM_SUBSCRIPTION_ID
+              value: "76f62c75-865d-4b5e-99e9-f512832303ba"
+
+            - name: ARM_OIDC_TOKEN_FILE_PATH
+              value: "/var/run/secrets/azure/tokens/azure-identity-token"
