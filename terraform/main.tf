@@ -12,7 +12,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-gitops-terraform-argocd"
+  name     = "rg-gitops-terraform-argocd-v2"
   location = "Central India"
 
   tags = {
