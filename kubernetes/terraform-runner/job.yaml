@@ -66,8 +66,10 @@ spec:
 
               echo "=== Terraform Plan ==="
               terraform plan
+              echo "=== Terraform Apply ==="
+              terraform apply -auto-approve
 
-              echo "=== TEST PASSED ==="
+              echo "=== APPLY PASSED ==="
 
           env:
             - name: ARM_USE_OIDC
