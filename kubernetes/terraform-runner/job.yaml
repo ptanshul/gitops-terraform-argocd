@@ -52,10 +52,12 @@ spec:
 
               echo "=== Clone Git repository ==="
               git clone \
-                --branch master \
                 https://github.com/ptanshul/gitops-terraform-argocd.git \
                 /workspace
 
+              cd /workspace
+              echo "=== Checkout Git revision ==="
+              git checkout "${GIT_REVISION}"
               cd /workspace/terraform
 
               echo "=== Terraform Init ==="
@@ -72,6 +74,9 @@ spec:
               echo "=== APPLY PASSED ==="
 
           env:
+            - name: GIT_REVISION
+              value: "5c2047a83f43e133860433e2009919299d732c22"
+
             - name: ARM_USE_OIDC
               value: "true"
 
