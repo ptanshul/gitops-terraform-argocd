@@ -6,7 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    gitops/terraform-hash: "1a6b06b7b74733a0"
+    gitops/terraform-hash: "c818ab8e728fb822"
 spec:
   ttlSecondsAfterFinished: 300
   template:
@@ -42,6 +42,7 @@ spec:
           git rev-parse HEAD
           
           cd /workspace/terraform
+          
           echo "=== Terraform Init ==="
           terraform init
           
