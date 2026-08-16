@@ -6,45 +6,38 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    gitops/terraform-hash: "07864143f09dffae"
+    gitops/terraform-hash: "734d6c03168b870b"
 spec:
   backoffLimit: 0
   ttlSecondsAfterFinished: 60
   template:
-    metadata:
-      labels:
-        azure.workload.identity/use: "true"
-      annotations:
-        azure.workload.identity/use: "true"
     spec:
       serviceAccountName: terraform-runner
       restartPolicy: Never
-      volumes:
-      - name: azure-identity-token
-        projected:
-          sources:
-          - serviceAccountToken:
-              audience: api://AzureADTokenExchange
-              expirationSeconds: 3600
-              path: azure-identity-token
       containers:
       - name: terraform
         image: alpine:latest
-        volumeMounts:
-        - name: azure-identity-token
-          mountPath: /var/run/secrets/azure/tokens
-          readOnly: true
         env:
-        - name: ARM_USE_OIDC
-          value: "true"
         - name: ARM_CLIENT_ID
-          value: "c68d765d-5593-4d91-9802-11d7cdb8096c"
+          valueFrom:
+            secretKeyRef:
+              name: azure-credentials
+              key: client_id
+        - name: ARM_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: azure-credentials
+              key: client_secret
         - name: ARM_TENANT_ID
-          value: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+          valueFrom:
+            secretKeyRef:
+              name: azure-credentials
+              key: tenant_id
         - name: ARM_SUBSCRIPTION_ID
-          value: "76f62c75-865d-4b5e-99e9-f512832303ba"
-        - name: ARM_OIDC_TOKEN_FILE_PATH
-          value: "/var/run/secrets/azure/tokens/azure-identity-token"
+          valueFrom:
+            secretKeyRef:
+              name: azure-credentials
+              key: subscription_id
         command:
         - /bin/sh
         - -c
@@ -52,18 +45,13 @@ spec:
           set -e
           echo "=== Starting Terraform Job ==="
           
-          apk add --no-cache git curl unzip python3 py3-pip
+          apk add --no-cache git curl unzip
           
           # Install Terraform
           TERRAFORM_VERSION=1.15.8
           curl -sSL -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
           unzip -q terraform.zip -d /usr/local/bin
           rm terraform.zip
-          
-          # Install Azure CLI via pip with virtual env
-          python3 -m venv /venv
-          . /venv/bin/activate
-          pip install azure-cli
           
           terraform version
           
@@ -73,14 +61,6 @@ spec:
           git rev-parse HEAD
           
           cd /workspace/terraform
-          
-          echo "=== Checking OIDC token ==="
-          ls -la /var/run/secrets/azure/tokens/ || echo "Token directory not found"
-          test -f /var/run/secrets/azure/tokens/azure-identity-token && echo "OIDC token exists" || echo "OIDC token missing"
-          
-          # Login using Azure CLI
-          echo "=== Azure CLI Login ==="
-          az login --identity --username $ARM_CLIENT_ID
           
           echo "=== Terraform Init ==="
           terraform init
