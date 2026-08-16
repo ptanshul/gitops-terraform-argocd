@@ -56,8 +56,6 @@ spec:
                 /workspace
 
               cd /workspace
-              echo "=== Checkout Git revision ==="
-              git checkout "${GIT_REVISION}"
               echo "=== Git Revision ==="
               git rev-parse HEAD
               echo "=== Terraform main.tf ==="
@@ -79,9 +77,6 @@ spec:
               echo "=== APPLY PASSED ==="
 
           env:
-            - name: GIT_REVISION
-              value: "5c2047a83f43e133860433e2009919299d732c22"
-
             - name: ARM_USE_OIDC
               value: "true"
 
