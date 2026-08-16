@@ -11,7 +11,6 @@ provider "azurerm" {
   features {}
   use_oidc = true
   oidc_token_file_path = "/var/run/secrets/azure/tokens/azure-identity-token"
-  oidc_request_token = file("/var/run/secrets/azure/tokens/azure-identity-token")
 }
 
 resource "azurerm_resource_group" "rg" {
