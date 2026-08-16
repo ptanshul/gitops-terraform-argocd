@@ -4,9 +4,6 @@ metadata:
   name: terraform-runner
   namespace: terraform
   annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    argocd.argoproj.io/sync-options: Replace=true
     gitops/terraform-hash: "4cd3219a189dce7e"
 spec:
   backoffLimit: 0
