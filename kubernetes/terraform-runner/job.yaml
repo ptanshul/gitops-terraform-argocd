@@ -4,7 +4,7 @@ metadata:
   name: terraform-runner
   namespace: terraform
   annotations:
-    gitops/terraform-hash: "4cd3219a189dce7e"
+    gitops/terraform-hash: "40da922a7cf13073"
 spec:
   backoffLimit: 0
   ttlSecondsAfterFinished: 60
