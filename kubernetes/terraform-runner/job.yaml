@@ -54,9 +54,10 @@ spec:
           
           apk add --no-cache git curl unzip python3 py3-pip
           
-          # Install Azure CLI
+          # Install Azure CLI from Microsoft repository
           echo "=== Installing Azure CLI ==="
-          apk add --no-cache azure-cli
+          apk add --no-cache sudo openssl
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sh
           
           # Install Terraform
           TERRAFORM_VERSION=1.15.8
@@ -79,7 +80,7 @@ spec:
           
           # Login using OIDC token
           echo "=== Azure CLI Login with OIDC ==="
-          az login --identity --username \$ARM_CLIENT_ID --allow-no-subscriptions
+          az login --identity --username ${ARM_CLIENT_ID} --allow-no-subscriptions
           
           echo "=== Terraform Init ==="
           terraform init
