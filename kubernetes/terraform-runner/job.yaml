@@ -52,13 +52,18 @@ spec:
           set -e
           echo "=== Starting Terraform Job ==="
           
-          apk add --no-cache git curl unzip
+          apk add --no-cache git curl unzip python3 py3-pip
           
           # Install Terraform
           TERRAFORM_VERSION=1.15.8
           curl -sSL -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
           unzip -q terraform.zip -d /usr/local/bin
           rm terraform.zip
+          
+          # Install Azure CLI via pip with virtual env
+          python3 -m venv /venv
+          . /venv/bin/activate
+          pip install azure-cli
           
           terraform version
           
@@ -72,6 +77,10 @@ spec:
           echo "=== Checking OIDC token ==="
           ls -la /var/run/secrets/azure/tokens/ || echo "Token directory not found"
           test -f /var/run/secrets/azure/tokens/azure-identity-token && echo "OIDC token exists" || echo "OIDC token missing"
+          
+          # Login using Azure CLI
+          echo "=== Azure CLI Login ==="
+          az login --identity --username $ARM_CLIENT_ID
           
           echo "=== Terraform Init ==="
           terraform init
