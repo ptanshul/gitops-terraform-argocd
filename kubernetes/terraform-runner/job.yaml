@@ -29,7 +29,7 @@ spec:
               path: azure-identity-token
       containers:
       - name: terraform
-        image: mcr.microsoft.com/azure-cli:latest
+        image: alpine:latest
         volumeMounts:
         - name: azure-identity-token
           mountPath: /var/run/secrets/azure/tokens
@@ -46,18 +46,19 @@ spec:
         - name: ARM_OIDC_TOKEN_FILE_PATH
           value: "/var/run/secrets/azure/tokens/azure-identity-token"
         command:
-        - /bin/bash
+        - /bin/sh
         - -c
         - |
           set -e
           echo "=== Starting Terraform Job ==="
           
+          apk add --no-cache git curl unzip python3 py3-pip
+          
           # Install Terraform
           TERRAFORM_VERSION=1.15.8
-          apt-get update -qq && apt-get install -y -qq wget unzip
-          wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin
-          rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+          curl -sSL -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+          unzip -q terraform.zip -d /usr/local/bin
+          rm terraform.zip
           
           terraform version
           
@@ -71,6 +72,10 @@ spec:
           echo "=== Checking OIDC token ==="
           ls -la /var/run/secrets/azure/tokens/ || echo "Token directory not found"
           test -f /var/run/secrets/azure/tokens/azure-identity-token && echo "OIDC token exists" || echo "OIDC token missing"
+          
+          # Install Azure CLI using pip
+          echo "=== Installing Azure CLI via pip ==="
+          pip install azure-cli
           
           # Login using OIDC token
           echo "=== Azure CLI Login with OIDC ==="
