@@ -6,6 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-options: Replace=true
     gitops/terraform-hash: "b5e421455b0a7dea"
 spec:
   backoffLimit: 0
