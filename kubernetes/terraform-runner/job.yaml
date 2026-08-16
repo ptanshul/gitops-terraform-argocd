@@ -24,11 +24,13 @@ spec:
         - name: ARM_USE_OIDC
           value: "true"
         - name: ARM_CLIENT_ID
-          value: "c68d765d-5593-4d91-9802-11d7cdb8096c"
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.annotations['azure.workload.identity/client-id']"
         - name: ARM_TENANT_ID
           valueFrom:
             fieldRef:
-              fieldPath: spec.serviceAccountAnnotations.azure.workload.identity/tenant-id
+              fieldPath: "metadata.annotations['azure.workload.identity/tenant-id']"
         - name: ARM_SUBSCRIPTION_ID
           value: "76f62c75-865d-4b5e-99e9-f512832303ba"
         - name: ARM_OIDC_TOKEN_FILE_PATH
