@@ -12,14 +12,28 @@ spec:
   ttlSecondsAfterFinished: 60
   template:
     metadata:
+      labels:
+        azure.workload.identity/use: "true"
       annotations:
         azure.workload.identity/use: "true"
     spec:
       serviceAccountName: terraform-runner
       restartPolicy: Never
+      volumes:
+      - name: azure-identity-token
+        projected:
+          sources:
+          - serviceAccountToken:
+              audience: api://AzureADTokenExchange
+              expirationSeconds: 3600
+              path: azure-identity-token
       containers:
       - name: terraform
         image: alpine:latest
+        volumeMounts:
+        - name: azure-identity-token
+          mountPath: /var/run/secrets/azure/tokens
+          readOnly: true
         env:
         - name: ARM_USE_OIDC
           value: "true"
