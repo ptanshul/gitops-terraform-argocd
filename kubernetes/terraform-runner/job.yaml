@@ -8,7 +8,8 @@ metadata:
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     gitops/terraform-hash: "c818ab8e728fb822"
 spec:
-  ttlSecondsAfterFinished: 300
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 60
   template:
     metadata:
       annotations:
@@ -19,6 +20,19 @@ spec:
       containers:
       - name: terraform
         image: alpine:latest
+        env:
+        - name: ARM_USE_OIDC
+          value: "true"
+        - name: ARM_CLIENT_ID
+          value: "c68d765d-5593-4d91-9802-11d7cdb8096c"
+        - name: ARM_TENANT_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountAnnotations.azure.workload.identity/tenant-id
+        - name: ARM_SUBSCRIPTION_ID
+          value: "76f62c75-865d-4b5e-99e9-f512832303ba"
+        - name: ARM_OIDC_TOKEN_FILE_PATH
+          value: "/var/run/secrets/azure/tokens/azure-identity-token"
         command:
         - /bin/sh
         - -c
@@ -42,6 +56,10 @@ spec:
           git rev-parse HEAD
           
           cd /workspace/terraform
+          
+          echo "=== Checking OIDC token ==="
+          ls -la /var/run/secrets/azure/tokens/ || echo "Token directory not found"
+          test -f /var/run/secrets/azure/tokens/azure-identity-token && echo "OIDC token exists" || echo "OIDC token missing"
           
           echo "=== Terraform Init ==="
           terraform init
